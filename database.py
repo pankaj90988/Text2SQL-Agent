@@ -5,11 +5,10 @@ class DatabaseManager:
     def __init__(self, db_url: str):
         self.db_url = db_url
 
+    #========================================
+    # Function to getting schema from table
+    #========================================
     def get_schema(self) -> str:
-        """
-        # Comment: Connects to Neon PostgreSQL and fetches public table schemas,
-        # Comment: column names, and data types to format context for LLM.
-        """
         try:
             # Establish connection with Neon DB
             conn = psycopg2.connect(self.db_url)
@@ -43,14 +42,15 @@ class DatabaseManager:
             return "\n".join(schema_info)
 
         except Exception as e:
-            # Comment: Raise readable exception if connection fails
+            # Raise readable exception if connection fails
             raise ConnectionError(f"Failed to connect to Neon PostgreSQL: {str(e)}")
 
+    #========================================
+    # Function to Executes a SELECT query on Neon DB safely and returns Pandas DataFrame.
+    # Includes security guardrails to reject data modification commands.
+    #========================================      
     def execute_query(self, query: str) -> pd.DataFrame:
-        #========================================
-        # Executes a SELECT query on Neon DB safely and returns Pandas DataFrame.
-        # Includes security guardrails to reject data modification commands.
-        #========================================
+
         clean_query = query.strip().upper()
         blocked_keywords = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "CREATE"]
         

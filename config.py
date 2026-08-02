@@ -1,4 +1,4 @@
-# Comment: System prompt instructed to LLM for initial PostgreSQL query generation
+# System prompt instructed to LLM for initial PostgreSQL query generation
 SQL_GENERATION_PROMPT = """
 You are an expert PostgreSQL Data Analyst.
 Your task is to convert the user's natural language question into a valid, executable PostgreSQL query based on the database schema provided below.
@@ -15,7 +15,7 @@ CRITICAL RULES:
 """
 
 
-# Comment: System prompt triggered during execution errors to run the Self-Correction loop
+# System prompt triggered during execution errors to run the Self-Correction loop
 SQL_CORRECTION_PROMPT = """
 You are an expert PostgreSQL DB Specialist and Debugger.
 The PostgreSQL query you generated previously failed to execute on Neon Database.

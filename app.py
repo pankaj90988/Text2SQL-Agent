@@ -25,7 +25,7 @@ if not SYSTEM_GROQ_API_KEY:
 
 
 #======================================
-#Sidebar Setup & Usage Instructions
+#Sidebar Setup & Usage Instructions UI
 #======================================
 with st.sidebar:
     st.header("⚙️ Database Connection")
@@ -101,15 +101,15 @@ if run_button:
 
                 st.success("Query Executed Successfully!")
 
-                # Comment: Display generated PostgreSQL query
+                # Display generated PostgreSQL query
                 st.subheader("Generated PostgreSQL Query")
                 st.code(final_query, language="sql")
 
-                # Comment: Display tabular data results
+                # Display tabular data results
                 st.subheader("Query Results")
                 st.dataframe(df, use_container_width=True)
 
-                # Comment: Generate automatic chart if numerical and text columns are present
+                # Generate automatic chart if numerical and text columns are present
                 numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
                 text_cols = df.select_dtypes(include=['object']).columns.tolist()
 
@@ -122,7 +122,7 @@ if run_button:
                     )
                     st.plotly_chart(fig, use_container_width=True)
 
-                # Comment: Show detailed debug execution logs inside expander
+                # Show detailed debug execution logs inside expander
                 with st.expander("🛠️ Execution Logs (Self-Correction Steps)"):
                     for log in logs:
                         st.write(f"**Attempt {log['attempt']}:** Status - `{log['status']}`")
