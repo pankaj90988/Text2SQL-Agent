@@ -76,12 +76,14 @@ with st.sidebar:
 st.markdown("### 💬 Ask a Question")
 st.caption("Enter a question related to the active database schema shown on the left sidebar.")
 
-user_question = st.text_input(
+
+
+with st.form(key="query-form",clear_on_submit=True):
+    user_question = st.text_input(
     "Query Prompt:",
     placeholder="e.g., What are the top 3 item or product categories by total sales volume?"
-)
-
-run_button = st.button("Get Output", type="primary")
+    )
+    run_button = st.form_submit_button("Get Output", type="primary")
 
 if run_button:
     if not user_question.strip():
