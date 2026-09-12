@@ -9,9 +9,9 @@ import pandas as pd
 #Load environment variables from .env file
 load_dotenv()
 
-st.set_page_config(page_title="Text2SQL Agent - Natural Language to PostgreSQL", page_icon=":icon:", layout="wide")
+st.set_page_config(page_title="Text2SQL Agent - Natural Language to PostgreSQL",page_icon="🤖", layout="wide")
 st.title("🤖Text2SQL Agent")
-st.caption("Self-Correcting Text-to-SQL Engine powered by 🔗 LangChain,⚡Groq (Llama 3.3) and 🐘 Neon PostgreSQL DB")
+st.caption("Self-Correcting Text-to-SQL Engine powered by 🔗 LangChain, ✨ Google Gemini (Gemini 3.6) and 🐘 Neon PostgreSQL DB")
 
 
 #Read server-level environment configurations
@@ -93,7 +93,6 @@ if run_button:
             try:
                 # Initialize SQL Generator using system Groq key
                 chain = SQLGeneratorChain()
-        
                 # Execute self-correcting query pipeline
                 df, final_query, logs = chain.run_with_self_correction(
                     user_question=user_question,

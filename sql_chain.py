@@ -1,17 +1,23 @@
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from database import DatabaseManager
 from dotenv import load_dotenv
+from pydantic import SecretStr
 from config import SQL_GENERATION_PROMPT, SQL_CORRECTION_PROMPT
 load_dotenv()
+import os
 
 #======================================
 #SQLGeneratorChain class
 #======================================
 class SQLGeneratorChain:
-    def __init__(self, model_name: str = "llama-3.3-70b-versatile"):
-        # Initialize LangChain's Groq wrapper with zero temperature for deterministic outputs/No creative output
-        self.llm = ChatGroq(
+    def __init__(self, model_name: str = "gemini-3.6-flash"):
+        # Initialize LangChain's Google-gemini wrapper with zero temperature for deterministic outputs/No creative output
+        api_key = os.getenv("GOOGLE_API_KEY", "")
+    
+        self.llm = ChatGoogleGenerativeAI(
+            api_key=SecretStr(api_key),
             model=model_name,
             temperature=0.0,
         )
@@ -32,31 +38,65 @@ class SQLGeneratorChain:
     #Function to generate query first time
     #======================================
     def generate_sql_query(self, user_question: str, schema: str) -> str:
-        # Generates initial PostgreSQL query from natural language user input
         prompt = ChatPromptTemplate.from_messages([
-            ("system", SQL_GENERATION_PROMPT),
-            ("human", "{question}")
+           ("system", SQL_GENERATION_PROMPT),
+           ("human", "{question}")
         ])
         chain = prompt | self.llm
-        response = chain.invoke({"schema": schema, "question": user_question})
-        return self.clean_sql_query_output(str(response.content))
+    
+        try:
+           print("Sending request to Gemini API...")
+           response = chain.invoke({"schema": schema, "question": user_question})
+           
+           # Check if content is a list
+           if isinstance(response.content, list) and len(response.content) > 0:
+               first_element = response.content[0]
+               # Agar element dictionary hai, toh uska 'text' key nikalenge
+               if isinstance(first_element, dict):
+                   raw_sql = first_element.get('text', '')
+               else:
+                   raw_sql = str(first_element)
+           else:
+               raw_sql = str(response.content)
+               
+           return self.clean_sql_query_output(raw_sql)
+
+        except Exception as e:
+           print(f"Gemini API Error: {e}")
+           return "ERROR_GENERATING_SQL"
 
 
-    #======================================
-    #Function to call llm if They wrote wrong query previously
+     #======================================
+    #Function to correct query if it fails
     #======================================
     def correct_the_sql_query(self, failed_query: str, error_message: str, schema: str) -> str:
-        # Feeds database error message back to Groq to fix broken query
         prompt = ChatPromptTemplate.from_messages([
             ("system", SQL_CORRECTION_PROMPT)
         ])
         chain = prompt | self.llm
-        response = chain.invoke({
-            "schema": schema,
-            "failed_query": failed_query,
-            "error_message": error_message
-        })
-        return self.clean_sql_query_output(str(response.content))
+        
+        try:
+            print("Sending request to Gemini API for SQL correction...")
+            response = chain.invoke({
+                "schema": schema,
+                "failed_query": failed_query,
+                "error_message": error_message
+            })
+            
+            # Safe Gemini Response Extraction for Correction
+            if isinstance(response.content, list) and len(response.content) > 0:
+                first_element = response.content[0]
+                if isinstance(first_element, dict):
+                    raw_sql = first_element.get('text', '')
+                else:
+                    raw_sql = str(first_element)
+            else:
+                raw_sql = str(response.content)
+                
+            return self.clean_sql_query_output(raw_sql)
+        except Exception as e:
+            print(f"Gemini API Error (Correction): {e}")
+            return "ERROR_CORRECTING_SQL"
 
     #======================================
     #Function which Running in loop upto max_retrie if Query failed to fetch the data from databse
@@ -67,10 +107,9 @@ class SQLGeneratorChain:
         """
         schema = db_manager.get_schema()
         attempts_log = []
-        
         # First Attempt Generation
         current_query = self.generate_sql_query(user_question, schema)
-        
+       
         # Retry execution loop
         for attempt in range(1, max_retries + 1):
             try:
