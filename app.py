@@ -15,12 +15,12 @@ st.caption("Self-Correcting Text-to-SQL Engine powered by 🔗 LangChain, ✨ Go
 
 
 #Read server-level environment configurations
-SYSTEM_GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+SYSTEM_GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 DEFAULT_DB_URL = os.getenv("DATABASE_URL", "")
 
 #Ensure Groq API Key exists in .env
-if not SYSTEM_GROQ_API_KEY:
-    st.error("❌ System Error: Groq API Key is missing from .env file.")
+if not SYSTEM_GOOGLE_API_KEY:
+    st.error("❌ System Error: GOOGLE_API_KEY is missing from .env file.")
     st.stop()
 
 
